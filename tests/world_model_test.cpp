@@ -67,8 +67,7 @@ static void testNewestTimestampWins() {
 
 static void testFleet() {
   FleetState fleet;
-  RobotSnapshot snapshot;
-  memset(&snapshot, 0, sizeof(snapshot));
+  RobotSnapshot snapshot = {};
   copyId(snapshot.robotId, sizeof(snapshot.robotId), "R01");
   snapshot.current = GridCoord::fromLabel("A1");
   snapshot.next = GridCoord::fromLabel("B1");
@@ -88,8 +87,7 @@ static void testRobotComms() {
   RobotComms comms(adapter, "R01");
   assert(comms.begin(0));
 
-  RobotSnapshot status;
-  memset(&status, 0, sizeof(status));
+  RobotSnapshot status = {};
   copyId(status.robotId, sizeof(status.robotId), "R01");
   status.current = GridCoord::fromLabel("A1");
   status.next = GridCoord::fromLabel("B1");
