@@ -82,6 +82,40 @@ static void testFleet() {
   assert(stored->mode == MODE_STUCK);
 }
 
+static void testAirlockHelpers() {
+  FleetState fleet;
+  RobotSnapshot leaving = {};
+  copyId(leaving.robotId, sizeof(leaving.robotId), "BASE_BOT");
+  leaving.mode = MODE_BASE;
+  leaving.airlockIntent = AIRLOCK_EXIT_BASE;
+  leaving.lastHeartbeat = 1000;
+  assert(fleet.upsert(leaving));
+
+  RobotSnapshot entering = {};
+  copyId(entering.robotId, sizeof(entering.robotId), "ENTRY_BOT");
+  entering.mode = MODE_RETURNING;
+  entering.airlockIntent = AIRLOCK_ENTER_BASE;
+  entering.lastHeartbeat = 1000;
+  assert(fleet.upsert(entering));
+
+  assert(fleet.hasRobotWaitingToEnterBase("BASE_BOT"));
+  const RobotSnapshot *waiting = fleet.firstRobotWaitingToEnterBase("BASE_BOT");
+  assert(waiting != 0);
+  assert(idEquals(waiting->robotId, "ENTRY_BOT"));
+
+  ServerCommand command = {};
+  command.action = ACTION_AIRLOCK_STUCK_WARNING;
+  command.airlockAStuck = true;
+  command.airlockBStuck = false;
+  assert(shouldAvoidAirlock(command, AIRLOCK_ENTER_BASE));
+  assert(!shouldAvoidAirlock(command, AIRLOCK_EXIT_BASE));
+
+  command.airlockAStuck = false;
+  command.airlockBStuck = true;
+  assert(!shouldAvoidAirlock(command, AIRLOCK_ENTER_BASE));
+  assert(shouldAvoidAirlock(command, AIRLOCK_EXIT_BASE));
+}
+
 static void testRobotComms() {
   MockServerAdapter adapter;
   RobotComms comms(adapter, "R01");
@@ -113,6 +147,7 @@ int main() {
   testGridPlantingAndSkips();
   testNewestTimestampWins();
   testFleet();
+  testAirlockHelpers();
   testRobotComms();
   printf("world_model_test passed\n");
   return 0;

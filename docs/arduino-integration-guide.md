@@ -70,9 +70,25 @@ void handleServerCommand(const ServerCommand &command) {
   }
 }
 
+void prepareToLeaveBase() {
+  status.airlockIntent = AIRLOCK_EXIT_BASE;
+
+  if (comms.fleet().hasRobotWaitingToEnterBase(status.robotId)) {
+    status.airlockIntent = AIRLOCK_NONE;
+    admitWaitingRobotIntoBase();
+    return;
+  }
+
+  requestExitAirlock();
+}
+
 void loopComms() {
   updateCommsStatusFromRobot();
   if (comms.sync(status, millis(), &command)) {
+    if (shouldAvoidAirlock(command, status.airlockIntent)) {
+      stopBeforeAirlock();
+      status.airlockIntent = AIRLOCK_NONE;
+    }
     handleServerCommand(command);
   }
 }
@@ -176,6 +192,31 @@ Before entering or leaving an airlock:
 When leaving base, first let waiting robots into base if your robot is in a
 position to admit them, then request exit.
 
+Use this exact guard before requesting Tunnel B exit:
+
+```cpp
+if (comms.fleet().hasRobotWaitingToEnterBase(status.robotId)) {
+  status.airlockIntent = AIRLOCK_NONE;
+  admitWaitingRobotIntoBase();
+  return;
+}
+
+status.airlockIntent = AIRLOCK_EXIT_BASE;
+```
+
+Use this exact guard before moving into either airlock:
+
+```cpp
+if (shouldAvoidAirlock(command, status.airlockIntent)) {
+  stopBeforeAirlock();
+  status.airlockIntent = AIRLOCK_NONE;
+  return;
+}
+```
+
+`AIRLOCK_ENTER_BASE` corresponds to Tunnel A. `AIRLOCK_EXIT_BASE` corresponds to
+Tunnel B.
+
 ## Rescue Flow
 
 Set `status.wantsToSave = true` only when all of these are true:
@@ -211,4 +252,3 @@ All real server work belongs in `ProfessorServerAdapter`:
 
 Student sketches should not need to change when the professor API details are
 updated.
-

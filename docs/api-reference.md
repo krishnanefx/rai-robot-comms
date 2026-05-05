@@ -57,6 +57,18 @@ Stores all 81 cells. Main helpers:
 - `isPlantable(...)`: true for fertile, not full, not blocked, not occupied, not reserved.
 - `nextPlantingTarget(...)`: route-order target selection with dynamic skips.
 
+## `FleetState`
+
+Stores the latest snapshots for other robots.
+
+- `count()`: number of stored snapshots.
+- `activeOnField()`: count robots active outside base.
+- `hasRobotWaitingToEnterBase(excludeRobotId)`: true when another live robot has
+  `AIRLOCK_ENTER_BASE` intent.
+- `firstRobotWaitingToEnterBase(excludeRobotId)`: first matching robot snapshot,
+  useful before a base robot requests exit.
+- `at(index)`: read a stored snapshot.
+
 ## `HamiltonianRoute`
 
 The default shared route is serpentine, starting `A1 -> B1 -> ... -> I1`, then
@@ -76,3 +88,14 @@ Abstract boundary for communication backends.
   confirmed.
 
 Do not expose HTTP/JSON details to student sketches.
+
+## Airlock Helpers
+
+`shouldAvoidAirlock(command, intent)`
+
+Returns true when the latest server command says the airlock for that intent is
+stuck or unsafe. Use it before driving into Tunnel A or Tunnel B.
+
+Rule for base exit: if a robot in base is about to set `AIRLOCK_EXIT_BASE`, it
+must first check `comms.fleet().hasRobotWaitingToEnterBase(status.robotId)`. If
+true, admit that waiting robot before requesting exit.

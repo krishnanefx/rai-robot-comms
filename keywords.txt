@@ -24,6 +24,9 @@ nextPlantingTarget	KEYWORD2
 isPlantable	KEYWORD2
 reserve	KEYWORD2
 occupy	KEYWORD2
+hasRobotWaitingToEnterBase	KEYWORD2
+firstRobotWaitingToEnterBase	KEYWORD2
+shouldAvoidAirlock	KEYWORD2
 
 FERTILITY_UNKNOWN	LITERAL1
 FERTILITY_INFERTILE	LITERAL1

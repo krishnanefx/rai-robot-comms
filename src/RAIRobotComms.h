@@ -172,6 +172,8 @@ public:
   void expire(uint32_t now, uint32_t staleAfterMs = RAI_STALE_ROBOT_MS);
   uint8_t count() const;
   uint8_t activeOnField() const;
+  bool hasRobotWaitingToEnterBase(const char *excludeRobotId = 0) const;
+  const RobotSnapshot *firstRobotWaitingToEnterBase(const char *excludeRobotId = 0) const;
   const RobotSnapshot *at(uint8_t indexValue) const;
 
 private:
@@ -239,6 +241,7 @@ bool idEquals(const char *a, const char *b);
 const char *fertilityName(Fertility fertility);
 const char *headingName(Heading heading);
 const char *actionName(ServerAction action);
+bool shouldAvoidAirlock(const ServerCommand &command, AirlockIntent intent);
 
 }
 

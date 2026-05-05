@@ -294,6 +294,21 @@ uint8_t FleetState::activeOnField() const {
   return total;
 }
 
+bool FleetState::hasRobotWaitingToEnterBase(const char *excludeRobotId) const {
+  return firstRobotWaitingToEnterBase(excludeRobotId) != 0;
+}
+
+const RobotSnapshot *FleetState::firstRobotWaitingToEnterBase(const char *excludeRobotId) const {
+  for (uint8_t i = 0; i < count_; i++) {
+    const RobotSnapshot &robot = robots_[i];
+    if (!emptyId(excludeRobotId) && idEquals(robot.robotId, excludeRobotId)) continue;
+    if (robot.airlockIntent != AIRLOCK_ENTER_BASE) continue;
+    if (robot.mode == MODE_DISABLED || robot.mode == MODE_STUCK) continue;
+    return &robot;
+  }
+  return 0;
+}
+
 const RobotSnapshot *FleetState::at(uint8_t indexValue) const {
   if (indexValue >= count_) return 0;
   return &robots_[indexValue];
@@ -458,6 +473,16 @@ const char *actionName(ServerAction action) {
     case ACTION_AIRLOCK_STUCK_WARNING: return "airlock_stuck_warning";
     default: return "none";
   }
+}
+
+bool shouldAvoidAirlock(const ServerCommand &command, AirlockIntent intent) {
+  if (command.action == ACTION_AIRLOCK_STUCK_WARNING) {
+    if (intent == AIRLOCK_ENTER_BASE && command.airlockAStuck) return true;
+    if (intent == AIRLOCK_EXIT_BASE && command.airlockBStuck) return true;
+  }
+  if (intent == AIRLOCK_ENTER_BASE) return command.airlockAStuck;
+  if (intent == AIRLOCK_EXIT_BASE) return command.airlockBStuck;
+  return false;
 }
 
 }

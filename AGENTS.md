@@ -82,6 +82,7 @@ In the student's main `.ino`:
    - `ACTION_AIRLOCK_GRANTED`: proceed according to the robot's airlock state.
    - `ACTION_AIRLOCK_DENIED`: wait outside the airlock.
    - `ACTION_AIRLOCK_STUCK_WARNING`: do not enter the warned airlock.
+     Use `shouldAvoidAirlock(command, status.airlockIntent)` before any airlock movement.
 
 8. When RFID is read, pass the raw UID string to `comms.reportVisit(uid, millis())`.
    Use the returned `VisitResult` to update the robot's `status.current` and decide
@@ -101,6 +102,21 @@ In the student's main `.ino`:
     }
     ```
 
+11. When a robot inside base is about to leave via Tunnel B, it must first check
+    whether any robot is waiting to enter via Tunnel A:
+
+    ```cpp
+    if (status.airlockIntent == AIRLOCK_EXIT_BASE &&
+        comms.fleet().hasRobotWaitingToEnterBase(status.robotId)) {
+      status.airlockIntent = AIRLOCK_NONE;
+      admitWaitingRobotIntoBase();
+      return;
+    }
+    ```
+
+    Only request exit after the waiting entrant has been admitted or there is no
+    waiting entrant.
+
 ## Do Not Do
 
 - Do not implement a production server in this repo.
@@ -111,6 +127,10 @@ In the student's main `.ino`:
   existing navigation code.
 - Do not treat raw RFID UID as a coordinate locally when using the professor
   server. The professor server resolves UID to coordinate.
+- Do not let a robot enter Tunnel A or Tunnel B when
+  `shouldAvoidAirlock(command, status.airlockIntent)` is true.
+- Do not let a base robot request `AIRLOCK_EXIT_BASE` while
+  `comms.fleet().hasRobotWaitingToEnterBase(status.robotId)` is true.
 
 ## Files To Read First
 
@@ -118,4 +138,3 @@ In the student's main `.ino`:
 - `src/RAIRobotComms.h`
 - `examples/MockRobot/MockRobot.ino`
 - `examples/ProfessorAdapterTemplate/ProfessorAdapterTemplate.ino`
-

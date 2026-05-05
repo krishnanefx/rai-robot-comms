@@ -25,6 +25,23 @@ void setupStatus() {
   HamiltonianRoute::fill(status.route, status.routeLength);
 }
 
+void admitWaitingRobotIntoBase() {
+  Serial.println("Base exit delayed: admitting waiting robot first.");
+}
+
+void stopBeforeAirlock() {
+  Serial.println("Airlock warning: stopping before unsafe tunnel.");
+}
+
+void prepareToLeaveBase() {
+  status.airlockIntent = AIRLOCK_EXIT_BASE;
+  if (comms.fleet().hasRobotWaitingToEnterBase(status.robotId)) {
+    status.airlockIntent = AIRLOCK_NONE;
+    admitWaitingRobotIntoBase();
+    return;
+  }
+}
+
 void setup() {
   Serial.begin(115200);
   while (!Serial && millis() < 3000) {}
@@ -51,6 +68,11 @@ void loop() {
 
   ServerCommand command;
   if (comms.sync(status, now, &command)) {
+    if (shouldAvoidAirlock(command, status.airlockIntent)) {
+      stopBeforeAirlock();
+      status.airlockIntent = AIRLOCK_NONE;
+    }
+
     Serial.print("Sync at ");
     Serial.print(now);
     Serial.print(" ms | current ");

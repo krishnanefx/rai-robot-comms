@@ -73,4 +73,7 @@ Professor server or mock data
 - Robots publish state every `250 ms`.
 - Robot reservations/occupancy are considered stale after `2 seconds`.
 - Unknown cells remain visitable.
+- A robot inside base must admit waiting `AIRLOCK_ENTER_BASE` robots before it
+  requests `AIRLOCK_EXIT_BASE`.
+- Robots must not enter an airlock when the server marks that airlock as stuck.
 - Do not build a production server in this repo.

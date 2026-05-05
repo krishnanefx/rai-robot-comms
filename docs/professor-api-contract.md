@@ -33,9 +33,13 @@ Server response should include:
 
 - emergency return or software kill command
 - airlock grant/deny/stuck warning
+- whether Tunnel A or Tunnel B is stuck/unsafe
 - rescue assignment, if any
 - updated grid cells, if any
 - other robot snapshots, if available
+
+The client library treats Tunnel A as base entry and Tunnel B as base exit. A
+robot requesting exit must first admit any live robot requesting entry.
 
 ## RFID Visit
 
