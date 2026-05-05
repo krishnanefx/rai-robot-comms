@@ -1,0 +1,6 @@
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.vite/
+*.log
+arduino_secrets.h
+.DS_Store
