@@ -1,26 +1,17 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
-import { createPlayfieldState } from "./mockPlayfield";
+import { refreshMs, usePlayfieldState } from "./dataSource";
 import type { GridCell, PlayfieldState, RobotState } from "./types";
 import "./styles.css";
 
-const refreshMs = 250;
-
 function App() {
-  const [tick, setTick] = useState(0);
   const [paused, setPaused] = useState(false);
   const [selectedRobotId, setSelectedRobotId] = useState("R01");
   const [selectedCell, setSelectedCell] = useState("E5");
   const [showRoutes, setShowRoutes] = useState(true);
   const [showInfertile, setShowInfertile] = useState(true);
 
-  useEffect(() => {
-    if (paused) return;
-    const id = window.setInterval(() => setTick((value) => value + 1), refreshMs);
-    return () => window.clearInterval(id);
-  }, [paused]);
-
-  const state = useMemo(() => createPlayfieldState(tick), [tick]);
+  const state = usePlayfieldState(paused);
   const selectedRobot = state.robots.find((robot) => robot.id === selectedRobotId) ?? state.robots[0];
   const selectedGridCell = state.cells.find((cell) => cell.label === selectedCell) ?? state.cells[40];
 
